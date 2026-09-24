@@ -1,40 +1,39 @@
 # Air Pollution in Skopje
 
-Class project on analyzing air pollution in Skopje over the period 2016–2025. The idea is to combine air quality and weather data, clean it up, and try to understand what drives high PM2.5/PM10 days – and maybe predict them.
+Class project analyzing air pollution in Skopje over 2016–2025: combine air quality and weather data, clean it, and understand what drives high PM2.5/PM10 days — and predict and cluster them.
 
-## Data sources
+## Data
 
-- **Air quality** – hourly measurements from the [OpenAQ API](https://openaq.org) (PM2.5, PM10, etc.).
-- **Weather** – hourly weather from the [Open-Meteo archive](https://open-meteo.com) for Skopje (41.9981, 21.4254).
+- **Air quality** – hourly measurements from the [OpenAQ API](https://openaq.org) (PM2.5, PM10, CO, NO, etc.), several Skopje stations.
+- **Weather** – hourly data from the [Open-Meteo archive](https://open-meteo.com) for Skopje (41.9981, 21.4254).
 
-The `OPENAQ_API_KEY` goes in a `.env` file.
+Your `OPENAQ_API_KEY` goes in a `.env` file. Raw downloads live in `data/raw/`, the cleaned daily air+weather dataset (per station, with PM10<PM2.5 consistency flags) in `data/processed/air_pollution_weather_daily_master.parquet`, engineered features and model metrics/predictions also in `data/processed/`.
 
-## Project structure
+## Code organization
 
 ```
 data/
   raw/          # downloaded hourly air quality + weather
-  interim/      # intermediate stuff
-  processed/    # cleaned daily dataset, features, model outputs
+  interim/      # intermediate output (mostly unused)
+  processed/    # daily dataset, features, model outputs
 notebooks/      # numbered pipeline: collection -> EDA -> modeling
 output/figures/ # generated plots
-src/            # shared helpers
 reports/        # write-ups
 ```
 
-## Notebooks (run in order)
+Notebooks (run in order):
 
-1. Weather collection (Open-Meteo)
-2. Air quality collection (OpenAQ)
-3. Build daily dataset (air + weather combined)
-4. Missingness and station selection
-5. EDA
-6. Feature engineering
-7. Regression / forecasting
-8. Classification of high pollution days
-9. Clustering
+1. `01_weather_collection.ipynb` – Open-Meteo download
+2. `02_air_quality_collection.ipynb` – OpenAQ download
+3. `03_build_daily_dataset.ipynb` – build daily air + weather dataset
+4. `04_missingness_and_station_selection.ipynb` – missingness, station selection, PM consistency
+5. `05_eda.ipynb` – distributions, seasonal patterns, correlations
+6. `06_feature_engineering.ipynb` – lags, rolling stats, calendar encodings, high-day labels
+7. `07_forecasting_regression.ipynb` – predict next-day PM2.5/PM10
+8. `08_high_pollution_classification.ipynb` – classify high (>25 µg/m³) PM2.5 days
+9. `09_clustering.ipynb` – find pollution regimes (KMeans, GMM, DBSCAN)
 
-## Setup
+## Setup & execution
 
 ```bash
 python -m venv .venv
@@ -44,6 +43,4 @@ pip install -r requirements.txt
 jupyter lab
 ```
 
-## Results
-
-Plots are saved to `output/figures/` and model metrics to `data/processed/`. Nothing too fancy – mostly exploring whether weather features help predict pollution days in Skopje.
+Run notebooks `01`–`09` in order; steps 1–2 can be skipped if `data/raw/` downloads are already present. Plots are saved to `output/figures/`, model outputs to `data/processed/`.
