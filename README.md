@@ -1,46 +1,47 @@
 # Air Pollution in Skopje
 
-Class project analyzing air pollution in Skopje over 2016–2025: combine air quality and weather data, clean it, and understand what drives high PM2.5/PM10 days — and predict and cluster them.
+Class project that looks at air pollution (PM2.5 and PM10) in Skopje from 2016 to 2025. We pull air quality and weather data, clean and combine them, then try to understand what drives high pollution days and whether we can predict them.
 
-## Data
+## Data sources
 
-- **Air quality** – hourly measurements from the [OpenAQ API](https://openaq.org) (PM2.5, PM10, CO, NO, etc.), several Skopje stations.
+- **Air quality** – hourly measurements from the [OpenAQ API](https://openaq.org) (PM2.5, PM10, CO, NO, etc.) across several Skopje stations.
 - **Weather** – hourly data from the [Open-Meteo archive](https://open-meteo.com) for Skopje (41.9981, 21.4254).
 
-Your `OPENAQ_API_KEY` goes in a `.env` file. Raw downloads live in `data/raw/`, the cleaned daily air+weather dataset (per station, with PM10<PM2.5 consistency flags) in `data/processed/air_pollution_weather_daily_master.parquet`, engineered features and model metrics/predictions also in `data/processed/`.
+You need an OpenAQ API key stored in a `.env` file as `OPENAQ_API_KEY=...`. Raw downloads go to `data/raw/`, cleaned data goes to `data/processed/`.
 
-## Code organization
+## Notebooks
+
+Run in order. Steps 1–2 can be skipped if `data/raw/` already has the downloads.
+
+1. `01_weather_collection.ipynb` – download weather data from Open-Meteo
+2. `02_air_quality_collection.ipynb` – download air quality data from OpenAQ
+3. `03_build_daily_dataset.ipynb` – combine into a daily air + weather dataset
+4. `04_missingness_and_station_selection.ipynb` – handle missing data, pick stations, flag PM inconsistencies
+5. `05_eda.ipynb` – explore distributions, seasonal patterns, correlations
+6. `06_feature_engineering.ipynb` – create lag features, rolling stats, calendar encodings, and labels for high-pollution days
+7. `07_forecasting_regression.ipynb` – predict next-day PM2.5 and PM10
+8. `08_high_pollution_classification.ipynb` – classify whether a day will be high-pollution (>25 µg/m³ for PM2.5)
+9. `09_clustering.ipynb` – group days into pollution regimes using KMeans, GMM, DBSCAN, and hierarchical clustering
+
+## Project structure
 
 ```
 data/
-  raw/          # downloaded hourly air quality + weather
-  interim/      # intermediate output (mostly unused)
+  raw/          # downloaded hourly data
   processed/    # daily dataset, features, model outputs
-notebooks/      # numbered pipeline: collection -> EDA -> modeling
-output/figures/ # generated plots
-reports/        # write-ups
+notebooks/      # the 9 notebooks above
+output/figures/ # saved plots
+reports/        # project documentation
 ```
 
-Notebooks (run in order):
-
-1. `01_weather_collection.ipynb` – Open-Meteo download
-2. `02_air_quality_collection.ipynb` – OpenAQ download
-3. `03_build_daily_dataset.ipynb` – build daily air + weather dataset
-4. `04_missingness_and_station_selection.ipynb` – missingness, station selection, PM consistency
-5. `05_eda.ipynb` – distributions, seasonal patterns, correlations
-6. `06_feature_engineering.ipynb` – lags, rolling stats, calendar encodings, high-day labels
-7. `07_forecasting_regression.ipynb` – predict next-day PM2.5/PM10
-8. `08_high_pollution_classification.ipynb` – classify high (>25 µg/m³) PM2.5 days
-9. `09_clustering.ipynb` – find pollution regimes (KMeans, GMM, DBSCAN)
-
-## Setup & execution
+## Setup
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-# add your OpenAQ API key to .env (OPENAQ_API_KEY=...)
+# put your OpenAQ API key in a .env file
 jupyter lab
 ```
 
-Run notebooks `01`–`09` in order; steps 1–2 can be skipped if `data/raw/` downloads are already present. Plots are saved to `output/figures/`, model outputs to `data/processed/`.
+Model predictions, metrics, and cluster labels are saved as parquet files in `data/processed/`. Plots are saved to `output/figures/`.
